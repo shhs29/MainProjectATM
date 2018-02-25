@@ -8,6 +8,10 @@ import numpy as np
 #cv2.imshow(img)
 import matplotlib.pyplot as plt
 
+fontFace = cv2.FONT_HERSHEY_COMPLEX
+fontScale = 1  
+fontColor = (255, 255, 255)
+
 ################################# start face detection ####################################
 
 def detect_face(img):
@@ -16,7 +20,7 @@ def detect_face(img):
     
     #load OpenCV face detector, I am using LBP which is fast
     #there is also a more accurate but slow Haar classifier
-    face_cascade = cv2.CascadeClassifier('/home/aasif/OpenCV/data/haarcascades/haarcascade_frontalface_default.xml')
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
     #let's detect multiscale (some images may be closer to camera than others) images
     #result is a list of faces
@@ -31,6 +35,7 @@ def detect_face(img):
     (x, y, w, h) = faces[0]
     
     #return only the face part of the image
+    
     return gray[y:y+w, x:x+h], faces[0]
 
 
@@ -68,10 +73,11 @@ def prepare_training_data(data_folder_path):
         #build path of directory containin images for current subject subject
         #sample subject_dir_path = "training-data/s1"
         subject_dir_path = data_folder_path + "/" + dir_name
+        #print subject_dir_path
         
         #get the images names that are inside the given subject directory
         subject_images_names = os.listdir(subject_dir_path)
-        
+        #print subject_images_names
         #------STEP-3--------
         #go through each image name, read image, 
         #detect face and add face to list of faces
@@ -80,11 +86,11 @@ def prepare_training_data(data_folder_path):
             #ignore system files like .DS_Store
             if image_name.startswith("."):
                 continue;
-            
+         
             #build image path
             #sample image path = training-data/s1/1.pgm
             image_path = subject_dir_path + "/" + image_name
-
+            #print image_path 
             #read image
             image = cv2.imread(image_path)
             
@@ -100,10 +106,12 @@ def prepare_training_data(data_folder_path):
             #we will ignore faces that are not detected
             if face is not None:
                 #add face to list of faces
+                #print "Hello"
                 faces.append(face)
                 #add label for this face
                 labels.append(label)
-            
+            #else:
+                #print "Incorrect"
     cv2.destroyAllWindows()
     cv2.waitKey(1)
     cv2.destroyAllWindows()
@@ -121,10 +129,13 @@ def predict(test_img):
     face, rect = detect_face(img)
 
     #predict the image using our face recognizer 
-    label= face_recognizer.predict(face)
+    label, conf = face_recognizer.predict(face)
+    print label
     #get name of respective label returned by face recognizer
-    
-    label_text = "s"+str(label)
+    if conf>44:
+     label_text = "Unknown"
+    else:
+     label_text = "s"+str(label)
     
     #draw a rectangle around face detected
     draw_rectangle(img, rect)
@@ -147,7 +158,10 @@ def draw_rectangle(img, rect):
 #function to draw text on give image starting from
 #passed (x, y) coordinates. 
 def draw_text(img, text, x, y):
-    cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
+    locy = int(img.shape[0]/2) # the text location will be in the middle
+    locx = int(img.shape[1]/2) #           of the frame for this example  
+    #cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
+    cv2.putText(img, text, (locx, locy), fontFace, fontScale, fontColor)
 ################################## end drawing #####################################
 
 
@@ -158,7 +172,7 @@ faces, labels = prepare_training_data("dataset")
 print faces
 print labels
 print("Data prepared")
-subjects=["","s1","s2","Aasif"]
+
 #print total faces and labels
 print("Total faces: ", len(faces))
 print("Total labels: ", len(labels))
@@ -168,7 +182,7 @@ face_recognizer.train(faces, np.array(labels))
 print("Predicting images...")
 
 #load test images
-test_img1 = cv2.imread("Unknown/test1.jpg")
+test_img1 = cv2.imread("manjuwarrier.jpeg")
 #test_img2 = cv2.imread("Unknown/U_2.jpg")
 
 #perform a prediction
