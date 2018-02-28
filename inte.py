@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import datetime
 import time
 import pickle
+import string
 import shutil
 
 ######database######
@@ -52,9 +53,29 @@ while 1:
 		
 	f.close()
 
+	#query_change = "SELECT image FROM userdata WHERE timestamp < (NOW() - INTERVAL 2 MINUTE)";
+
+	#cursor.execute(query_change)
+
+	#data = cursor.fetchone()
+       
+	#if not data:
+
+		#label = int(data.replace("s",""))
+
+                #if label>1:
+
+        		#shutil.rmtree(path + str(label))
+
+	query_delete = "DELETE FROM userdata WHERE timestamp < (NOW() - INTERVAL 5 MINUTE)";
+
+	cursor.execute(query_delete)
+
+	cnx.commit()
+
 	os.mkdir(path + str(id), 0755)
 
-	query_insert = "insert into userdata VALUES('User" + str(id) + "','s" + str(id) + "',1);"
+	query_insert = "insert into userdata VALUES('User" + str(id) + "','s" + str(id) + "',1,CURRENT_TIMESTAMP);"
 
 	cursor.execute(query_insert)
 
@@ -96,9 +117,34 @@ while 1:
 
 				cnx.commit()
 
-				query_change = "update userdata set frequency=frequency+1 where image='"+name+"';"
+				query_change = "update userdata set frequency=frequency+1,timestamp=CURRENT_TIMESTAMP where image='"+name+"';"
 
 				cursor.execute(query_change)
+
+				#query_id = "select frequency from userdata where image='"+name+"';"
+
+				#cursor.execute(query_id)
+  
+				query_select = "select frequency from userdata where image='"+name+"';"
+
+				cursor.execute(query_select)
+
+				data = cursor.fetchone()
+
+				print(data)
+
+				if data>=4:
+
+					count = 3
+
+					while count>0:
+
+						count=count-1
+
+						os.system("mpg321 multiple.mp3")
+	
+
+				#print ("%s" %data)
 
 				cnx.commit()
 
@@ -156,6 +202,14 @@ while 1:
 				if len(faces)>1:
 
 	    				cv2.putText(img, "Warning: Threshold reached", (locx, locy), fontFace, fontScale, fontColor) 
+
+					count = 3
+
+					while count>0:
+
+						count=count-1
+
+						os.system("mpg321 thres.mp3")
 	
 					print("Warning: Threshold reached")
     		
@@ -178,6 +232,14 @@ while 1:
 	f.close()
 
 	print("Time exceeded")
+
+	count = 3
+
+	while count>0:
+
+		count=count-1
+
+		os.system("mpg321 time.mp3")
 
 	#break
    
